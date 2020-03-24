@@ -1,5 +1,5 @@
 {
-  "name": "state-x",
+  "name": "stateli",
   "version": "1.0.1",
   "homepage": "",
   "jest": {},
@@ -11,7 +11,7 @@
     "test": "tsc && tslint --project tsconfig.json && jest --verbose --coverage",
     "watch:test": "jest --watch",
     "clean:dist": "node_modules/.bin/rimraf dist/",
-    "clean:tarball": "node_modules/.bin/rimraf state-x*.tgz"
+    "clean:tarball": "node_modules/.bin/rimraf stateli*.tgz"
   },
   "devDependencies": {
     "@types/jest": "^25.1.4",

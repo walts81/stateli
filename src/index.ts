@@ -1,17 +1,17 @@
-import { IStateXAction } from './state-x-action';
-import { IStateXGetter } from './state-x-getter';
-import { IStateXMutation } from './state-x-mutation';
-import { IStateXStore, StateXStore } from './statex-store';
-import { IStateXContext } from './context';
-import { IStateXModule, StateXModule } from './state-x-module';
+import { IStateliAction } from './stateli-action';
+import { IStateliGetter } from './stateli-getter';
+import { IStateliMutation } from './stateli-mutation';
+import { IStateliStore, StateliStore } from './stateli-store';
+import { IStateliContext } from './stateli-context';
+import { IStateliModule, StateliModule } from './stateli-module';
 
 export {
-  IStateXAction,
-  IStateXGetter,
-  IStateXMutation,
-  IStateXStore,
-  StateXStore,
-  IStateXContext,
-  IStateXModule,
-  StateXModule,
+  IStateliAction,
+  IStateliGetter,
+  IStateliMutation,
+  IStateliStore,
+  StateliStore,
+  IStateliContext,
+  IStateliModule,
+  StateliModule,
 };

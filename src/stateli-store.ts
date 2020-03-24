@@ -1,20 +1,20 @@
 import { Observable, Subscriber, Subscribable, Unsubscribable, PartialObserver } from 'rxjs';
-import { IStateXAction } from './state-x-action';
-import { IStateXContext } from './context';
-import { IStateXGetter } from './state-x-getter';
-import { IStateXModule } from './state-x-module';
-import { IStateXMutation } from './state-x-mutation';
+import { IStateliAction } from './stateli-action';
+import { IStateliContext } from './stateli-context';
+import { IStateliGetter } from './stateli-getter';
+import { IStateliModule } from './stateli-module';
+import { IStateliMutation } from './stateli-mutation';
 import { clone } from './clone';
 
-export interface IStateXStore<RootState> extends Subscribable<{ type: string; store: IStateXStore<RootState> }> {
+export interface IStateliStore<RootState> extends Subscribable<{ type: string; store: IStateliStore<RootState> }> {
   readonly rootState: RootState;
   getter(type: string): any;
   commit<Payload = any>(type: string, payload?: Payload): void;
   dispatch<Payload = any, Result = any>(type: string, payload?: Payload): Promise<Result>;
 }
 
-class ReadonlyStateXStore<RootState> implements IStateXStore<RootState> {
-  constructor(private rState: RootState, private store: IStateXStore<RootState>) {}
+class ReadonlyStateliStore<RootState> implements IStateliStore<RootState> {
+  constructor(private rState: RootState, private store: IStateliStore<RootState>) {}
 
   get rootState() {
     return this.rState;
@@ -34,10 +34,10 @@ class ReadonlyStateXStore<RootState> implements IStateXStore<RootState> {
 
   subscribe(
     next?:
-      | PartialObserver<{ type: string; store: IStateXStore<RootState> }>
+      | PartialObserver<{ type: string; store: IStateliStore<RootState> }>
       | null
       | undefined
-      | ((value: { type: string; store: IStateXStore<RootState> }) => void),
+      | ((value: { type: string; store: IStateliStore<RootState> }) => void),
     error?: null | undefined | ((error: any) => void),
     complete?: () => void
   ): Unsubscribable {
@@ -45,9 +45,9 @@ class ReadonlyStateXStore<RootState> implements IStateXStore<RootState> {
   }
 }
 
-export class StateXStore<RootState> extends Observable<{ type: string; store: IStateXStore<RootState> }>
-  implements IStateXStore<RootState> {
-  private _modules: IStateXModule<RootState>[];
+export class StateliStore<RootState> extends Observable<{ type: string; store: IStateliStore<RootState> }>
+  implements IStateliStore<RootState> {
+  private _modules: IStateliModule<RootState>[];
   private _subscriber: Subscriber<any>;
 
   get rootState() {
@@ -66,10 +66,10 @@ export class StateXStore<RootState> extends Observable<{ type: string; store: IS
   }
 
   constructor(config: {
-    actions?: IStateXAction<RootState>[];
-    mutations?: IStateXMutation<RootState>[];
-    getters?: IStateXGetter<RootState>[];
-    modules?: IStateXModule[];
+    actions?: IStateliAction<RootState>[];
+    mutations?: IStateliMutation<RootState>[];
+    getters?: IStateliGetter<RootState>[];
+    modules?: IStateliModule[];
     initialState?: RootState;
   }) {
     super(subscriber => {
@@ -110,7 +110,7 @@ export class StateXStore<RootState> extends Observable<{ type: string; store: IS
           (m as any).state = state;
           const clonedState = clone(this.rootState);
           setTimeout(
-            () => this._subscriber.next({ type, store: new ReadonlyStateXStore<RootState>(clonedState, this) }),
+            () => this._subscriber.next({ type, store: new ReadonlyStateliStore<RootState>(clonedState, this) }),
             1
           );
           break;
@@ -137,8 +137,8 @@ export class StateXStore<RootState> extends Observable<{ type: string; store: IS
     return module.namespaced ? `${module.name}/${item.type}` : item.type;
   }
 
-  private getContext<State>(module: IStateXModule<State>) {
-    const context: IStateXContext<RootState, State> = {
+  private getContext<State>(module: IStateliModule<State>) {
+    const context: IStateliContext<RootState, State> = {
       rootState: this.rootState,
       state: module.state,
       commit: <Payload = any>(type: string, payload?: Payload) => this.commit<Payload>(type, payload),

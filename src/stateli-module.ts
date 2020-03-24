@@ -1,20 +1,20 @@
-import { IStateXAction } from './state-x-action';
-import { IStateXGetter } from './state-x-getter';
-import { IStateXMutation } from './state-x-mutation';
+import { IStateliAction } from './stateli-action';
+import { IStateliGetter } from './stateli-getter';
+import { IStateliMutation } from './stateli-mutation';
 
-export interface IStateXModule<State = any> {
+export interface IStateliModule<State = any> {
   readonly name: string;
-  readonly actions: IStateXAction<State>[];
-  readonly getters: IStateXGetter<State>[];
-  readonly mutations: IStateXMutation<State>[];
+  readonly actions: IStateliAction<State>[];
+  readonly getters: IStateliGetter<State>[];
+  readonly mutations: IStateliMutation<State>[];
   readonly state: State;
   readonly namespaced: boolean;
 }
 
-export class StateXModule<State> implements IStateXModule<State> {
-  private _actions: IStateXAction<State>[] = [];
-  private _mutations: IStateXMutation<State>[] = [];
-  private _getters: IStateXGetter<State>[] = [];
+export class StateliModule<State> implements IStateliModule<State> {
+  private _actions: IStateliAction<State>[] = [];
+  private _mutations: IStateliMutation<State>[] = [];
+  private _getters: IStateliGetter<State>[] = [];
   private _state: State;
   private _name: string;
   private _namespaced: boolean;
@@ -52,15 +52,15 @@ export class StateXModule<State> implements IStateXModule<State> {
     return [...this._getters];
   }
 
-  protected addGetter(getter: IStateXGetter<State>) {
+  protected addGetter(getter: IStateliGetter<State>) {
     this.addItem('GETTER', getter, this._getters);
   }
 
-  protected addAction(action: IStateXAction<State>) {
+  protected addAction(action: IStateliAction<State>) {
     this.addItem('ACTION', action, this._actions);
   }
 
-  protected addMutation(mutation: IStateXMutation<State>) {
+  protected addMutation(mutation: IStateliMutation<State>) {
     this.addItem('MUTATION', mutation, this._mutations);
   }
 

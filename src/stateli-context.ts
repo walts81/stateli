@@ -1,4 +1,4 @@
-export interface IStateXContext<RootState = any, State = any> {
+export interface IStateliContext<RootState = any, State = any> {
   rootState: RootState;
   state: State;
   commit: (type: string, payload?: any) => void;
