@@ -1,0 +1,27 @@
+{
+  "name": "state-x",
+  "version": "1.0.1",
+  "homepage": "",
+  "jest": {},
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "npm run build && node dist/index.js",
+    "build": "npm run clean:dist && tsc",
+    "prepack": "npm run clean:tarball && npm run build",
+    "test": "tsc && tslint --project tsconfig.json && jest --verbose --coverage",
+    "watch:test": "jest --watch",
+    "clean:dist": "node_modules/.bin/rimraf dist/",
+    "clean:tarball": "node_modules/.bin/rimraf state-x*.tgz"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.4",
+    "coveralls": "^3.0.9",
+    "jest": "^25.1.0",
+    "rimraf": "^3.0.2",
+    "tslint": "^6.1.0",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "rxjs": "^6.5.4"
+  }
+}
