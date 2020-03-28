@@ -1,15 +1,8 @@
-import { IStateliAction } from './stateli-action';
-import { IStateliGetter } from './stateli-getter';
-import { IStateliMutation } from './stateli-mutation';
-
-export interface IStateliModule<State = any> {
-  readonly name: string;
-  readonly actions: IStateliAction<State>[];
-  readonly getters: IStateliGetter<State>[];
-  readonly mutations: IStateliMutation<State>[];
-  readonly state: State;
-  readonly namespaced: boolean;
-}
+import { IStateliModule } from './i-stateli-module';
+import { IStateliAction } from './i-stateli-action';
+import { IStateliGetter } from './i-stateli-getter';
+import { IStateliMutation } from './i-stateli-mutation';
+import { HasStringType } from './../has-type';
 
 export class StateliModule<State> implements IStateliModule<State> {
   private _actions: IStateliAction<State>[] = [];
@@ -52,21 +45,20 @@ export class StateliModule<State> implements IStateliModule<State> {
     return [...this._getters];
   }
 
-  protected addGetter(getter: IStateliGetter<State>) {
+  addGetter(getter: IStateliGetter<State>) {
     this.addItem('GETTER', getter, this._getters);
   }
 
-  protected addAction(action: IStateliAction<State>) {
+  addAction(action: IStateliAction<State>) {
     this.addItem('ACTION', action, this._actions);
   }
 
-  protected addMutation(mutation: IStateliMutation<State>) {
+  addMutation(mutation: IStateliMutation<State>) {
     this.addItem('MUTATION', mutation, this._mutations);
   }
 
-  private addItem<T extends { type: string }>(type: string, item: T, arr: T[]) {
+  private addItem<T extends HasStringType>(type: string, item: T, arr: T[]) {
     this.checkType(type, item.type);
-    // item.type = this.getNamespacedType(item.type);
     arr.push(item);
   }
 
@@ -78,8 +70,4 @@ export class StateliModule<State> implements IStateliModule<State> {
       throw new Error(`${type} type cannot contain a forward slash "/"`);
     }
   }
-
-  // private getNamespacedType(type: string) {
-  //   return this.namespaced ? `${this.name}/${type}` : type;
-  // }
 }

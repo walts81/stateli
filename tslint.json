@@ -1,11 +1,18 @@
 {
-    "extends": ["tslint:latest"],
+    "extends": [
+        "tslint:latest"
+    ],
     "rules": {
         "object-literal-sort-keys": false,
         "no-implicit-dependencies": false,
         "no-submodule-imports": false,
-        "semicolon": [true, "always", "ignore-bound-class-methods"],
+        "semicolon": [
+            true,
+            "always",
+            "ignore-bound-class-methods"
+        ],
         "ordered-imports": false,
-        "member-access": false
+        "member-access": false,
+        "max-classes-per-file": false
     }
 }
