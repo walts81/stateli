@@ -1,6 +1,6 @@
 import { IUnsubscribable } from './i-subscribable';
-import { IPartialObserver } from './i-observer';
+import { IFunctionObserver } from './i-observer';
 
 export interface IObservable<T> {
-  subscribe(observer?: IPartialObserver<T>): IUnsubscribable;
+  subscribe(observer: IFunctionObserver<T>): IUnsubscribable;
 }

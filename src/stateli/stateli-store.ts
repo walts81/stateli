@@ -1,31 +1,35 @@
-import { Observable } from 'rxjs';
+import { Subject } from 'rxjs';
+import { List } from 'immutable';
 import { IStateliStore } from './i-stateli-store';
 import { IStateliContext } from './i-stateli-context';
 import { IStateliModule } from './i-stateli-module';
 import { IStateliAction } from './i-stateli-action';
 import { IStateliGetter } from './i-stateli-getter';
 import { IStateliMutation } from './i-stateli-mutation';
-import { IPartialObserver } from './../observable/i-observer';
+import { IFunctionObserver } from './../observable/i-observer';
 import { IStateliObservable } from './i-stateli-observable';
-import { IStateliSubscriber } from './i-stateli-subscriber';
-import { ReadonlyStateliStore } from './readonly-stateli-store';
-import { clone } from './../clone';
+import { StateliSnapshotStore } from './stateli-snapshot-store';
+import { StateliModule } from './stateli-module';
 import { HasStringType } from './../has-type';
 
+const stateliRootModuleName = 'stateli_root';
+
 export class StateliStore<RootState> implements IStateliStore<RootState>, IStateliContext<RootState, RootState> {
-  private _modules: IStateliModule<RootState>[];
-  private _observable: Observable<IStateliObservable<RootState>>;
-  private _subscriber: IStateliSubscriber<RootState>;
+  private _modules: List<IStateliModule>;
+  private _observable = new Subject<IStateliObservable<RootState>>();
 
   get rootState() {
-    if (this._modules.length === 1 && this._modules[0].name === 'root') {
-      return clone(this._modules[0].state);
+    const count = this._modules.count();
+    const firstMod = count === 1 ? this._modules.get(0) : null;
+    const modName = count === 1 ? firstMod?.name : '';
+    if (modName === stateliRootModuleName) {
+      return firstMod?.state as RootState;
     }
     const s: any = {};
-    for (const m of this.modules) {
+    for (const m of this._modules) {
       s[m.name] = m.state;
     }
-    return s;
+    return s as RootState;
   }
 
   get state() {
@@ -33,7 +37,7 @@ export class StateliStore<RootState> implements IStateliStore<RootState>, IState
   }
 
   get modules() {
-    return [...this._modules];
+    return this._modules.toArray();
   }
 
   constructor(config: {
@@ -43,45 +47,39 @@ export class StateliStore<RootState> implements IStateliStore<RootState>, IState
     modules?: IStateliModule[];
     initialState?: RootState;
   }) {
-    this._observable = new Observable<IStateliObservable<RootState>>(subscriber => this._subscriber = subscriber);
-    this._modules = !!config.modules ? [...config.modules] : [];
-    if (this._modules.length === 0) {
-      const localModule = {
-        name: 'root',
-        namespaced: false,
-        state: config.initialState || ({} as any),
-        actions: !!config.actions ? [...config.actions] : [],
-        mutations: !!config.mutations ? [...config.mutations] : [],
-        getters: !!config.getters ? [...config.getters] : [],
-      };
-      this._modules.unshift(localModule);
-    }
+    const modules = !!config.modules ? [...config.modules] : [{
+      name: stateliRootModuleName,
+      namespaced: false,
+      state: config.initialState || {},
+      actions: !!config.actions ? config.actions : [],
+      getters: !!config.getters ? config.getters : [],
+      mutations: !!config.mutations ? config.mutations : [],
+    }];
+    const immutableModules = modules.map(x => new StateliModule<any>(x));
+    this._modules = List(immutableModules);
   }
 
   getter(type: string) {
-    for (const m of this.modules) {
-      for (const g of m.getters) {
-        if (this.getType(m, g) === type) {
-          return g.getValue(m.state, this.getter, this.rootState);
+    for (const mod of this._modules) {
+      for (const getter of mod.getters) {
+        if (this.getType(mod, getter) === type) {
+          return getter.getValue(mod.state, this.getter.bind(this), this.rootState);
         }
       }
     }
-    return null;
+    return undefined;
   }
 
   commit<Payload = any>(type: string, payload: Payload) {
-    for (const m of this.modules) {
+    for (const mod of this._modules) {
       let found = false;
-      for (const mutation of m.mutations) {
-        if (this.getType(m, mutation) === type) {
+      for (const mutation of mod.mutations) {
+        if (this.getType(mod, mutation) === type) {
           found = true;
-          const state = mutation.commit(m.state, payload);
-          (m as any).state = state;
-          const clonedState = clone(this.rootState);
-          setTimeout(
-            () => this._subscriber.next({ type, store: new ReadonlyStateliStore<RootState>(clonedState, this) }),
-            1
-          );
+          mod.state = mutation.commit(mod.state, payload);
+          const rState = this.rootState;
+          const store = new StateliSnapshotStore(rState, this);
+          this._observable.next({ type, payload, store });
           break;
         }
       }
@@ -92,28 +90,28 @@ export class StateliStore<RootState> implements IStateliStore<RootState>, IState
   }
 
   dispatch<Payload = any, Result = any>(type: string, payload: Payload) {
-    for (const m of this.modules) {
-      for (const action of m.actions) {
-        if (this.getType(m, action) === type) {
-          return action.execute(this.getContext(m), payload);
+    for (const mod of this._modules) {
+      for (const action of mod.actions) {
+        if (this.getType(mod, action) === type) {
+          return action.execute(this.getContext(mod), payload);
         }
       }
     }
     return Promise.resolve<Result>(null as any);
   }
 
-  subscribe(observer?: IPartialObserver<IStateliObservable<RootState>>) {
+  subscribe(observer: IFunctionObserver<IStateliObservable<RootState>>) {
     return this._observable.subscribe(observer);
   }
 
-  private getType<T extends HasStringType>(module: { name: string; namespaced: boolean }, item: T) {
-    return module.namespaced ? `${module.name}/${item.type}` : item.type;
+  private getType<T extends HasStringType>(mod: { name: string; namespaced: boolean }, item: T) {
+    return mod.namespaced ? `${mod.name}/${item.type}` : item.type;
   }
 
-  private getContext<State>(module: IStateliModule<State>) {
+  private getContext<State>(mod: IStateliModule<State>) {
     const context: IStateliContext<RootState, State> = {
       rootState: this.rootState,
-      state: module.state,
+      state: mod.state,
       commit: <Payload = any>(type: string, payload: Payload) => this.commit<Payload>(type, payload),
       dispatch: <Payload = any, Result = any>(type: string, payload: Payload) =>
         this.dispatch<Payload, Result>(type, payload),

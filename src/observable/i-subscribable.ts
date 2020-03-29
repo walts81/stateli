@@ -1,9 +1,9 @@
-import { IPartialObserver } from './i-observer';
+import { IFunctionObserver } from './i-observer';
 
 export interface IUnsubscribable {
   unsubscribe(): void;
 }
 
 export interface ISubscribable<T> {
-  subscribe(observer?: IPartialObserver<T>): IUnsubscribable;
+  subscribe(observer: IFunctionObserver<T>): IUnsubscribable;
 }

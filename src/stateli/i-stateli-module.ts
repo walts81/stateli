@@ -7,6 +7,6 @@ export interface IStateliModule<State = any> {
   readonly actions: IStateliAction<State>[];
   readonly getters: IStateliGetter<State>[];
   readonly mutations: IStateliMutation<State>[];
-  readonly state: State;
+  state: State;
   readonly namespaced: boolean;
 }
