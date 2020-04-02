@@ -1,7 +1,6 @@
 import { Subject } from 'rxjs';
 import { List } from 'immutable';
 import { IStateliStore } from './i-stateli-store';
-import { IStateliContext } from './i-stateli-context';
 import { IStateliModule } from './i-stateli-module';
 import { IStateliAction } from './i-stateli-action';
 import { IStateliGetter } from './i-stateli-getter';
@@ -11,29 +10,23 @@ import { IStateliObservable } from './i-stateli-observable';
 import { StateliSnapshotStore } from './stateli-snapshot-store';
 import { StateliModule } from './stateli-module';
 import { HasStringType } from './../has-type';
+import { StateliSnapshotContext } from './stateli-snapshot-context';
 
 const stateliRootModuleName = 'stateli_root';
 
-export class StateliStore<RootState> implements IStateliStore<RootState>, IStateliContext<RootState, RootState> {
+export class StateliStore<RootState> implements IStateliStore<RootState> {
   private _modules: List<IStateliModule>;
   private _observable = new Subject<IStateliObservable<RootState>>();
 
-  get rootState() {
-    const count = this._modules.count();
-    const firstMod = count === 1 ? this._modules.get(0) : null;
-    const modName = count === 1 ? firstMod?.name : '';
-    if (modName === stateliRootModuleName) {
-      return firstMod?.state as RootState;
+  get state() {
+    if (this.isDefaultModule()) {
+      return (this._modules.get(0) as any).state;
     }
     const s: any = {};
     for (const m of this._modules) {
       s[m.name] = m.state;
     }
     return s as RootState;
-  }
-
-  get state() {
-    return this.rootState;
   }
 
   get modules() {
@@ -47,14 +40,18 @@ export class StateliStore<RootState> implements IStateliStore<RootState>, IState
     modules?: IStateliModule[];
     initialState?: RootState;
   }) {
-    const modules = !!config.modules ? [...config.modules] : [{
-      name: stateliRootModuleName,
-      namespaced: false,
-      state: config.initialState || {},
-      actions: !!config.actions ? config.actions : [],
-      getters: !!config.getters ? config.getters : [],
-      mutations: !!config.mutations ? config.mutations : [],
-    }];
+    const modules = !!config.modules
+      ? [...config.modules]
+      : [
+          {
+            name: stateliRootModuleName,
+            namespaced: false,
+            state: config.initialState || {},
+            actions: !!config.actions ? config.actions : [],
+            getters: !!config.getters ? config.getters : [],
+            mutations: !!config.mutations ? config.mutations : [],
+          },
+        ];
     const immutableModules = modules.map(x => new StateliModule<any>(x));
     this._modules = List(immutableModules);
   }
@@ -63,7 +60,7 @@ export class StateliStore<RootState> implements IStateliStore<RootState>, IState
     for (const mod of this._modules) {
       for (const getter of mod.getters) {
         if (this.getType(mod, getter) === type) {
-          return getter.getValue(mod.state, this.getter.bind(this), this.rootState);
+          return getter.getValue(mod.state, this.getter.bind(this), this.state);
         }
       }
     }
@@ -77,8 +74,7 @@ export class StateliStore<RootState> implements IStateliStore<RootState>, IState
         if (this.getType(mod, mutation) === type) {
           found = true;
           mod.state = mutation.commit(mod.state, payload);
-          const rState = this.rootState;
-          const store = new StateliSnapshotStore(rState, this);
+          const store = new StateliSnapshotStore(this);
           this._observable.next({ type, payload, store });
           break;
         }
@@ -104,18 +100,21 @@ export class StateliStore<RootState> implements IStateliStore<RootState>, IState
     return this._observable.subscribe(observer);
   }
 
-  private getType<T extends HasStringType>(mod: { name: string; namespaced: boolean }, item: T) {
+  private isDefaultModule() {
+    const count = this._modules.count();
+    const firstMod = count === 1 ? this._modules.get(0) : (null as any);
+    const modName = count === 1 ? firstMod.name : '';
+    return modName === stateliRootModuleName;
+  }
+
+  private getType<T extends HasStringType>(mod: { name: string; namespaced?: boolean }, item: T) {
     return mod.namespaced ? `${mod.name}/${item.type}` : item.type;
   }
 
   private getContext<State>(mod: IStateliModule<State>) {
-    const context: IStateliContext<RootState, State> = {
-      rootState: this.rootState,
-      state: mod.state,
-      commit: <Payload = any>(type: string, payload: Payload) => this.commit<Payload>(type, payload),
-      dispatch: <Payload = any, Result = any>(type: string, payload: Payload) =>
-        this.dispatch<Payload, Result>(type, payload),
-    } as any;
-    return context;
+    return new StateliSnapshotContext<RootState, any>(
+      x => (this.isDefaultModule() ? x.state : x.state[mod.name]),
+      this
+    );
   }
 }

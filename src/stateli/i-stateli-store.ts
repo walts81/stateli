@@ -1,8 +1,4 @@
 import { IStateliStoreSubscribable } from './i-stateli-store-subscribable';
+import { IStateliStoreBase } from './i-stateli-store-base';
 
-export interface IStateliStore<RootState> extends IStateliStoreSubscribable<RootState> {
-  readonly rootState: RootState;
-  getter(type: string): any;
-  commit<Payload = any>(type: string, payload: Payload): void;
-  dispatch<Payload = any, Result = any>(type: string, payload: Payload): Promise<Result>;
-}
+export interface IStateliStore<RootState> extends IStateliStoreBase<RootState>, IStateliStoreSubscribable<RootState> {}

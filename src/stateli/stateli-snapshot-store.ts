@@ -1,17 +1,20 @@
-import { IFunctionObserver } from './../observable/i-observer';
-import { IStateliStore } from './i-stateli-store';
-import { IStateliObservable } from './i-stateli-observable';
 import { Map, fromJS } from 'immutable';
+import { IStateliSnapshotStore } from './i-stateli-snapshot-store';
+import { IStateliStore } from './i-stateli-store';
 
-export class StateliSnapshotStore<RootState> implements IStateliStore<RootState> {
-  private _rootState: Map<string, any>;
+export class StateliSnapshotStore<RootState> implements IStateliSnapshotStore<RootState> {
+  private _rootSnapshot: Map<string, any>;
 
-  constructor(rootState: RootState, private store: IStateliStore<RootState>) {
-    this._rootState = fromJS(rootState);
+  constructor(private store: IStateliStore<RootState>) {
+    this._rootSnapshot = fromJS(store.state);
   }
 
-  get rootState() {
-    return this._rootState.toJS() as RootState;
+  get state() {
+    return this.store.state;
+  }
+
+  get snapshot() {
+    return this._rootSnapshot.toJS() as RootState;
   }
 
   getter(type: string) {
@@ -24,9 +27,5 @@ export class StateliSnapshotStore<RootState> implements IStateliStore<RootState>
 
   dispatch<Payload = any, Result = any>(type: string, payload: Payload) {
     return this.store.dispatch<Payload, Result>(type, payload);
-  }
-
-  subscribe(observer: IFunctionObserver<IStateliObservable<RootState>>) {
-    return this.store.subscribe(observer);
   }
 }

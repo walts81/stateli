@@ -1,8 +1,14 @@
 # Stateli
 
 [![Build Status](https://travis-ci.com/walts81/stateli.svg?branch=master)](https://travis-ci.com/walts81/stateli)
+[![Coverage Status](https://coveralls.io/repos/github/walts81/stateli/badge.svg)](https://coveralls.io/github/walts81/stateli)
 
 Stateli is a state management library borrowing concepts from [Vuex][vuex] but with no reliance on [Vue][vue].
+
+- State management using [Immutable][immutablejs]
+- Asynchronous actions are dispatched
+- Synchronous state mutations are committed
+- Can be used with a single state or modules with individual states
 
 ### Installation
 
@@ -41,21 +47,16 @@ const someMutation = {
 
 const someGetter = {
   type: 'some_getter_name',
-  getter: state => state.val,
+  getValue: state => state.val,
 };
 
 const initialState = { val: '' };
-const someModule = {
-  name: 'modA',
-  namespaced: false,
-  state: initialState,
+
+const store = new StateliStore({
   actions: [someAction],
   mutations: [someMutation],
   getters: [someGetter],
-};
-
-const store = new StateliStore({
-  modules: [someModule],
+  initialState,
 });
 
 // dispatch an asynchronous action
@@ -67,8 +68,8 @@ store.commit('some_mutation_name', 'payload_value');
 // get value from getter
 const val = store.getter('some_getter_name');
 
-// access root state
-const val = store.rootState.modA.val;
+// access state
+const val = store.state.val;
 ```
 
 ### Usage (typescript)
@@ -115,13 +116,12 @@ const setBusyMutation: IStateliMutation<RootState, ModuleAState, string> = {
 
 const someGetter: IStateliGetter<ModuleAState> = {
   type: 'some_getter_name',
-  getter: (state: ModuleAState) => state.val,
+  getValue: (state: ModuleAState) => state.val,
 };
 
 const initialState: ModuleAState = { val: '' };
 const modA: IStateliModule<RootState, ModuleAState> = {
   name: 'modA',
-  namespaced: false,
   state: initialState,
   actions: [someAction],
   mutations: [someMutation],
@@ -151,3 +151,4 @@ const val = store.rootState.modA.val;
 
 [vue]: https://vuejs.org
 [vuex]: https://vuex.vuejs.org
+[immutablejs]: https://immutable-js.github.io/immutable-js/

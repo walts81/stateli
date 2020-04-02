@@ -17,7 +17,7 @@ export class StateliModule<State> implements IStateliModule<State> {
   constructor(...args: any[]) {
     if (args.length === 1 && !!args[0].state) {
       this._m = this._m.set('name', args[0].name);
-      this._m = this._m.set('namespaced', args[0].namespaced);
+      this._m = this._m.set('namespaced', args[0].namespaced === true);
       this._state = fromJS(args[0].state);
       const a = args[0].actions || [];
       a.forEach(x => this.addAction(x));
@@ -27,7 +27,7 @@ export class StateliModule<State> implements IStateliModule<State> {
       m.forEach(x => this.addMutation(x));
     } else if (args.length === 3) {
       this._m = this._m.set('name', args[0]);
-      this._m = this._m.set('namespaced', args[1]);
+      this._m = this._m.set('namespaced', args[1] === true);
       this._state = fromJS(args[2]);
     } else {
       throw new Error('Invalid constructor arguments');

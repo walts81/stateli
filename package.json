@@ -2,22 +2,31 @@
   "name": "stateli",
   "version": "1.0.1",
   "homepage": "",
-  "jest": {},
   "main": "dist/index.js",
   "scripts": {
     "start": "npm run build && node dist/index.js",
     "build": "npm run clean:dist && tsc",
     "prepack": "npm run clean:tarball && npm run build",
-    "test": "tsc && tslint --project tsconfig.json && jest --verbose --coverage",
+    "test": "jest --coverage && cat ./coverage/lcov.info | coveralls",
     "watch:test": "jest --watch",
     "clean:dist": "node_modules/.bin/rimraf dist/",
     "clean:tarball": "node_modules/.bin/rimraf stateli*.tgz"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/walts81/stateli.git"
+  },
   "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-typescript": "^7.9.0",
     "@types/jest": "^25.1.4",
+    "babel-jest": "^25.2.6",
     "coveralls": "^3.0.9",
     "jest": "^25.1.0",
+    "jest-runner-tsc": "^1.6.0",
     "rimraf": "^3.0.2",
+    "ts-jest": "^25.3.0",
     "tslint": "^6.1.0",
     "typescript": "^3.8.3"
   },
