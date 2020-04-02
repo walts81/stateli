@@ -1,8 +1,6 @@
 # Stateli
 
-[![N|Solid](https://cldup.com/dTxpPi9lDf.thumb.png)](https://nodesource.com/products/nsolid)
-
-[![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
+[![Build Status](https://travis-ci.com/walts81/stateli.svg?branch=master)](https://travis-ci.com/walts81/stateli)
 
 Stateli is a state management library borrowing concepts from [Vuex][vuex] but with no reliance on [Vue][vue].
 
@@ -149,7 +147,7 @@ const val = store.rootState.modA.val;
 
 ## License
 
-MIT
+[MIT](LICENSE)
 
 [vue]: https://vuejs.org
 [vuex]: https://vuex.vuejs.org
