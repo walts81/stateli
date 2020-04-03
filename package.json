@@ -1,6 +1,6 @@
 {
   "name": "stateli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "homepage": "",
   "main": "dist/index.js",
   "scripts": {
@@ -12,12 +12,17 @@
     "clean:dist": "node_modules/.bin/rimraf dist/",
     "clean:tarball": "node_modules/.bin/rimraf stateli*.tgz"
   },
+  "author": {
+    "name": "Josh Walters",
+    "email": "josh.walters@outlook.com"
+  },
   "keywords": [
     "state",
     "state management",
     "vuex",
     "redux"
   ],
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/walts81/stateli.git"
