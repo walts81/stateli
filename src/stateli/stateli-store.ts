@@ -1,4 +1,3 @@
-import { Subject } from 'rxjs';
 import { List } from 'immutable';
 import { IStateliStore } from './i-stateli-store';
 import { IStateliModule } from './i-stateli-module';
@@ -16,7 +15,7 @@ const stateliRootModuleName = 'stateli_root';
 
 export class StateliStore<RootState> implements IStateliStore<RootState> {
   private _modules: List<IStateliModule>;
-  private _observable = new Subject<IStateliObservable<RootState>>();
+  private _subscribers: any[] = [];
 
   get state() {
     if (this.isDefaultModule()) {
@@ -27,6 +26,15 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
       s[m.name] = m.state;
     }
     return s as RootState;
+  }
+  set state(s: RootState) {
+    if (this.isDefaultModule()) {
+      this._modules[0].state = s;
+    } else {
+      for (const mod of this._modules) {
+        mod.state = s[mod.name];
+      }
+    }
   }
 
   get modules() {
@@ -73,9 +81,10 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
       for (const mutation of mod.mutations) {
         if (this.getType(mod, mutation) === type) {
           found = true;
-          mod.state = mutation.commit(mod.state, payload);
+          const state = mutation.commit(mod.state, payload);
+          mod.state = state;
           const store = new StateliSnapshotStore(this);
-          this._observable.next({ type, payload, store });
+          this._subscribers.slice().forEach(sub => sub({ type, payload, state, store }));
           break;
         }
       }
@@ -96,8 +105,18 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
     return Promise.resolve<Result>(null as any);
   }
 
-  subscribe(observer: IFunctionObserver<IStateliObservable<RootState>>) {
-    return this._observable.subscribe(observer);
+  subscribe(observer: IFunctionObserver<IStateliObservable<RootState, any>>) {
+    if (this._subscribers.indexOf(observer) < 0) {
+      this._subscribers.push(observer);
+    }
+    return {
+      unsubscribe: () => {
+        const ix = this._subscribers.indexOf(observer);
+        if (ix > -1) {
+          this._subscribers.splice(ix, 1);
+        }
+      },
+    };
   }
 
   private isDefaultModule() {
