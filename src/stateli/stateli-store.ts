@@ -10,12 +10,19 @@ import { StateliSnapshotStore } from './stateli-snapshot-store';
 import { StateliModule } from './stateli-module';
 import { HasStringType } from './../has-type';
 import { StateliSnapshotContext } from './stateli-snapshot-context';
+import { IUnsubscribable } from '../observable/i-subscribable';
 
 const stateliRootModuleName = 'stateli_root';
 
+interface Subscriber<RootState> {
+  observer: IFunctionObserver<IStateliObservable<RootState>>;
+  options?: { prepend: boolean };
+}
+
 export class StateliStore<RootState> implements IStateliStore<RootState> {
   private _modules: List<IStateliModule>;
-  private _subscribers: any[] = [];
+  private _mutationSubscribers: Subscriber<RootState>[] = [];
+  private _actionSubscribers: Subscriber<RootState>[] = [];
 
   get state() {
     if (this.isDefaultModule()) {
@@ -76,15 +83,21 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
   }
 
   commit<Payload = any>(type: string, payload: Payload) {
+    const currentStore = new StateliSnapshotStore(this);
+    this._mutationSubscribers.slice()
+      .filter(x => !!x.options && x.options.prepend)
+      .forEach(sub => sub.observer({ type, payload, state: currentStore.snapshot, store: currentStore }));
     for (const mod of this._modules) {
       let found = false;
       for (const mutation of mod.mutations) {
         if (this.getType(mod, mutation) === type) {
           found = true;
-          const state = mutation.commit(mod.state, payload);
-          mod.state = state;
-          const store = new StateliSnapshotStore(this);
-          this._subscribers.slice().forEach(sub => sub({ type, payload, state, store }));
+          const updatedModuleState = mutation.commit(mod.state, payload);
+          mod.state = updatedModuleState;
+          const updatedStore = new StateliSnapshotStore(this);
+          this._mutationSubscribers.slice()
+            .filter(x => !x.options || !x.options.prepend)
+            .forEach(sub => sub.observer({ type, payload, state: updatedStore.snapshot, store: updatedStore }));
           break;
         }
       }
@@ -95,28 +108,47 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
   }
 
   dispatch<Payload = any, Result = any>(type: string, payload: Payload) {
+    const currentStore = new StateliSnapshotStore(this);
+    this._actionSubscribers.slice()
+      .filter(x => !!x.options && x.options.prepend)
+      .forEach(sub => sub.observer({ type, payload, state: currentStore.snapshot, store: currentStore }));
     for (const mod of this._modules) {
       for (const action of mod.actions) {
         if (this.getType(mod, action) === type) {
-          return action.execute(this.getContext(mod), payload);
+          return action.execute(this.getContext(mod), payload).then(response => {
+            const updatedStore = new StateliSnapshotStore(this);
+            this._actionSubscribers.slice()
+              .filter(x => !x.options || !x.options.prepend)
+              .forEach(sub => sub.observer({ type, payload, state: updatedStore.snapshot, store: updatedStore }));
+            return response;
+          });
         }
       }
     }
     return Promise.resolve<Result>(null as any);
   }
 
-  subscribe(observer: IFunctionObserver<IStateliObservable<RootState, any>>) {
-    if (this._subscribers.indexOf(observer) < 0) {
-      this._subscribers.push(observer);
+  subscribeToMutation(observer: IFunctionObserver<IStateliObservable<RootState>>, options?: { prepend: boolean }) {
+    return this.subscribe(this._mutationSubscribers, observer, options);
+  }
+
+  subscribeToAction(observer: IFunctionObserver<IStateliObservable<RootState>>, options?: { prepend: boolean }) {
+    return this.subscribe(this._actionSubscribers, observer, options);
+  }
+
+  private subscribe(arr: Subscriber<RootState>[], observer: IFunctionObserver<IStateliObservable<RootState>>, options?: { prepend: boolean }) {
+    const subscriber = arr.find(x => x.observer === observer);
+    if (!subscriber) {
+      arr.push({ observer, options });
     }
     return {
       unsubscribe: () => {
-        const ix = this._subscribers.indexOf(observer);
+        const ix = arr.findIndex(x => x.observer === observer);
         if (ix > -1) {
-          this._subscribers.splice(ix, 1);
+          arr.splice(ix, 1);
         }
-      },
-    };
+      }
+    } as IUnsubscribable;
   }
 
   private isDefaultModule() {

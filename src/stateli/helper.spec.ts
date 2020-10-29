@@ -6,8 +6,10 @@ const createAction = (type: string, prefix: string) => {
   return {
     type,
     execute: (ctx, payload) => {
-      ctx.commit(`${prefix}mutation`, payload);
-      return Promise.resolve(true);
+      return new Promise(resolve => {
+        ctx.commit(`${prefix}mutation`, payload);
+        resolve(true);
+      });
     },
   };
 };
@@ -54,7 +56,7 @@ const createModuleStore = (singleMod: boolean, namespaced: boolean, defaultState
 };
 const createStore = (defaultStateVal: string, ...actions: any[]) => {
   return new StateliStore<any>({
-    actions: [noopAction, createAction('action', ''), ...actions],
+    actions: [noopAction, createAction('action', ''), createAction('action1', ''), createAction('action2', ''), ...actions],
     mutations: [noopMutation, mutation, mutation2],
     getters: [noopGetter, getter],
     initialState: { val: defaultStateVal, val2: '' },

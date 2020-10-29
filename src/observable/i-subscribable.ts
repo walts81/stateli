@@ -4,6 +4,4 @@ export interface IUnsubscribable {
   unsubscribe(): void;
 }
 
-export interface ISubscribable<T> {
-  subscribe(observer: IFunctionObserver<T>): IUnsubscribable;
-}
+export type ISubscribable<T> = (observer: IFunctionObserver<T>, options?: { prepend: boolean }) => IUnsubscribable;

@@ -1,8 +1,8 @@
 import { HasStringType } from './../has-type';
 import { IStateliSnapshotStore } from './i-stateli-snapshot-store';
 
-export interface IStateliObservable<RootState, State> extends HasStringType {
+export interface IStateliObservable<RootState> extends HasStringType {
   payload: any;
-  state: State;
+  state: RootState;
   store: IStateliSnapshotStore<RootState>;
 }

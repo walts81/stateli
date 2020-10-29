@@ -109,11 +109,11 @@ describe('actions', () => {
   });
 });
 
-describe('subscribe', () => {
+describe('subscribeToMutation', () => {
   test('should fire on mutation', async () => {
     const store = createModuleStore(false, false, '');
     let val = '';
-    store.subscribe(x => {
+    store.subscribeToMutation(x => {
       if (x.type === 'mutation') {
         val = x.payload;
       }
@@ -126,7 +126,7 @@ describe('subscribe', () => {
       const store = createStore('');
       let val = '';
       const p = new Promise(r2 => {
-        store.subscribe(x => {
+        store.subscribeToMutation(x => {
           if (x.type === 'mutation') {
             if (x.payload === testValue) {
               setTimeout(() => {
@@ -149,7 +149,7 @@ describe('subscribe', () => {
     return new Promise(resolve => {
       const store = createStore('');
       const p = new Promise(r2 => {
-        store.subscribe(x => {
+        store.subscribeToMutation(x => {
           if (x.type === 'mutation') {
             if (x.payload === testValue) {
               setTimeout(() => {
@@ -170,7 +170,7 @@ describe('subscribe', () => {
   });
   test('should be able to dispatch action', () => {
     const action = {
-      type: 'action2',
+      type: 'action3',
       execute: (ctx, payload) => {
         ctx.commit('mutation2', payload);
         return Promise.resolve(true);
@@ -178,9 +178,9 @@ describe('subscribe', () => {
     };
     return new Promise(resolve => {
       const store = createStore('', action);
-      store.subscribe(x => {
+      store.subscribeToMutation(x => {
         if (x.type === 'mutation') {
-          x.store.dispatch('action2', 'another value').then(() => {
+          x.store.dispatch('action3', 'another value').then(() => {
             expect(store.state.val2).toBe('another value');
             resolve();
           });
@@ -192,7 +192,7 @@ describe('subscribe', () => {
   test('should be able to commit mutation', () => {
     return new Promise(resolve => {
       const store = createStore('');
-      store.subscribe(x => {
+      store.subscribeToMutation(x => {
         if (x.type === 'mutation') {
           x.store.commit('mutation2', 'another value');
         }
@@ -207,8 +207,97 @@ describe('subscribe', () => {
   test('should be able to access getter', () => {
     return new Promise(resolve => {
       const store = createStore('');
-      store.subscribe(x => {
+      store.subscribeToMutation(x => {
         if (x.type === 'mutation') {
+          const val = x.store.getter('getter');
+          expect(val).toBe(testValue);
+          resolve();
+        }
+      });
+      store.dispatch('action', testValue);
+    });
+  });
+});
+
+describe('subscribeToAction', () => {
+  test('should fire on action', async () => {
+    const store = createModuleStore(false, false, '');
+    let val = '';
+    store.subscribeToAction(x => {
+      if (x.type === 'action') {
+        val = x.payload;
+      }
+    });
+    await store.dispatch('action', testValue);
+    expect(val).toBe(testValue);
+  });
+  test('should be able to access current state', async () => {
+    return new Promise(resolve => {
+      const store = createStore('');
+      let val = '';
+      const p = new Promise(r2 => {
+        store.subscribeToAction(x => {
+          if (x.type === 'action') {
+            if (x.payload === testValue) {
+              setTimeout(() => {
+                val = x.store.state.val;
+                r2(val);
+              }, 1);
+            }
+          }
+        });
+      });
+      store.dispatch('action', testValue);
+      store.dispatch('action', 'another value');
+      p.then(x => {
+        expect(x).toBe('another value');
+        resolve();
+      });
+    });
+  });
+  test('should be able to dispatch action', () => {
+    const action = {
+      type: 'action3',
+      execute: (ctx, payload) => {
+        ctx.commit('mutation2', payload);
+        return Promise.resolve(true);
+      },
+    };
+    return new Promise(resolve => {
+      const store = createStore('', action);
+      store.subscribeToAction(x => {
+        if (x.type === 'action') {
+          x.store.dispatch('action3', 'another value').then(() => {
+            expect(store.state.val2).toBe('another value');
+            resolve();
+          });
+        }
+      });
+      store.dispatch('action', testValue);
+    });
+  });
+  test('should be able to commit mutation', () => {
+    return new Promise(resolve => {
+      const store = createStore('');
+      store.subscribeToAction(x => {
+        if (x.type === 'action') {
+          x.store.commit('mutation2', 'another value');
+        }
+      });
+      store.subscribeToMutation(x => {
+        if (x.type === 'mutation2') {
+          expect(store.state.val2).toBe('another value');
+          resolve();
+        }
+      });
+      store.dispatch('action', testValue);
+    });
+  });
+  test('should be able to access getter', () => {
+    return new Promise(resolve => {
+      const store = createStore('');
+      store.subscribeToAction(x => {
+        if (x.type === 'action') {
           const val = x.store.getter('getter');
           expect(val).toBe(testValue);
           resolve();
@@ -278,7 +367,7 @@ describe('modules', () => {
 test('no-modules', async () => {
   const store = createStore('');
   let val = '';
-  store.subscribe(x => {
+  store.subscribeToMutation(x => {
     if (x.type === 'mutation') {
       val = x.payload;
     }
