@@ -10,7 +10,6 @@ import { StateliSnapshotStore } from './stateli-snapshot-store';
 import { StateliModule } from './stateli-module';
 import { HasStringType } from './../has-type';
 import { StateliSnapshotContext } from './stateli-snapshot-context';
-import { IUnsubscribable } from '../observable/i-subscribable';
 
 const stateliRootModuleName = 'stateli_root';
 
@@ -55,20 +54,7 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
     modules?: IStateliModule[];
     initialState?: RootState;
   }) {
-    const modules = !!config.modules
-      ? [...config.modules]
-      : [
-          {
-            name: stateliRootModuleName,
-            namespaced: false,
-            state: config.initialState || {},
-            actions: !!config.actions ? config.actions : [],
-            getters: !!config.getters ? config.getters : [],
-            mutations: !!config.mutations ? config.mutations : [],
-          },
-        ];
-    const immutableModules = modules.map(x => new StateliModule<any>(x));
-    this._modules = List(immutableModules);
+    this.reset(config);
   }
 
   getter(type: string) {
@@ -136,6 +122,31 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
     return this.subscribe(this._actionSubscribers, observer, options);
   }
 
+  reset(config: {
+    actions?: IStateliAction<RootState>[];
+    mutations?: IStateliMutation<RootState>[];
+    getters?: IStateliGetter<RootState>[];
+    modules?: IStateliModule[];
+    initialState?: RootState;
+  }) {
+    this._actionSubscribers = [];
+    this._mutationSubscribers = [];
+    const modules = !!config.modules
+      ? [...config.modules]
+      : [
+          {
+            name: stateliRootModuleName,
+            namespaced: false,
+            state: config.initialState || {},
+            actions: !!config.actions ? config.actions : [],
+            getters: !!config.getters ? config.getters : [],
+            mutations: !!config.mutations ? config.mutations : [],
+          },
+        ];
+    const immutableModules = modules.map(x => new StateliModule<any>(x));
+    this._modules = List(immutableModules);
+  }
+
   private subscribe(arr: Subscriber<RootState>[], observer: IFunctionObserver<IStateliObservable<RootState>>, options?: { prepend: boolean }) {
     const subscriber = arr.find(x => x.observer === observer);
     if (!subscriber) {
@@ -148,7 +159,7 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
           arr.splice(ix, 1);
         }
       }
-    } as IUnsubscribable;
+    };
   }
 
   private isDefaultModule() {
