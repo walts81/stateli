@@ -40,6 +40,9 @@ const someAction = {
 const someMutation = {
   type: 'some_mutation_name',
   commit: (state, payload) => {
+    // We don't update the state directly but instead we create a shallow copy,
+    // modify the copy and return it. Stateli will then replace the actual
+    // state with the returned copy.
     const updatedState = { ...state, val: payload };
     return updatedState;
   },
@@ -106,7 +109,7 @@ const someAction: IStateliAction<RootState, ModuleAState, string> = {
   },
 };
 
-const setBusyMutation: IStateliMutation<RootState, ModuleAState, string> = {
+const someMutation: IStateliMutation<RootState, ModuleAState, string> = {
   type: 'some_mutation_name',
   commit: (state: ModuleAState, payload: string) => {
     const updatedState = { ...state, val: payload };
