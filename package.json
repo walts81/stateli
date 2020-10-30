@@ -10,7 +10,8 @@
     "test": "jest --coverage && cat ./coverage/lcov.info | coveralls",
     "watch:test": "jest --watch",
     "clean:dist": "node_modules/.bin/rimraf dist/",
-    "clean:tarball": "node_modules/.bin/rimraf stateli*.tgz"
+    "clean:tarball": "node_modules/.bin/rimraf stateli*.tgz",
+    "update-version": "npm version patch -m \"updated version to %s\" && git push && git push --tags"
   },
   "author": {
     "name": "Josh Walters",
