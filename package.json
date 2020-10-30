@@ -1,6 +1,6 @@
 {
   "name": "stateli",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "homepage": "",
   "main": "dist/index.js",
   "scripts": {
