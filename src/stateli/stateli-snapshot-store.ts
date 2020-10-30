@@ -20,6 +20,10 @@ export class StateliSnapshotStore<RootState> implements IStateliSnapshotStore<Ro
     this.store.state = s;
   }
 
+  get modules() {
+    return this.store.modules;
+  }
+
   get snapshot() {
     return this._rootSnapshot.toJS() as RootState;
   }
