@@ -57,6 +57,10 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
     this.reset(config);
   }
 
+  asContext() {
+    return new StateliSnapshotContext(x => x.state, this);
+  }
+
   getter(type: string) {
     for (const mod of this._modules) {
       for (const getter of mod.getters) {
@@ -129,8 +133,6 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
     modules?: IStateliModule[];
     initialState?: RootState;
   }) {
-    this._actionSubscribers = [];
-    this._mutationSubscribers = [];
     const modules = !!config.modules
       ? [...config.modules]
       : [

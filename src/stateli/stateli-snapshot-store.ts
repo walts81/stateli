@@ -24,6 +24,10 @@ export class StateliSnapshotStore<RootState> implements IStateliSnapshotStore<Ro
     return this._rootSnapshot.toJS() as RootState;
   }
 
+  asContext() {
+    return this.store.asContext();
+  }
+
   getter(type: string) {
     return this.store.getter(type);
   }

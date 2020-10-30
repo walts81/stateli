@@ -2,6 +2,7 @@ import { IStateliGetter } from './i-stateli-getter';
 import { IStateliModule } from './i-stateli-module';
 import { IStateliMutation } from './i-stateli-mutation';
 import { IStateliAction } from './i-stateli-action';
+import { IStateliContext } from './i-stateli-context';
 
 export interface IStateliStoreBase<RootState> {
   state: RootState;
@@ -15,4 +16,5 @@ export interface IStateliStoreBase<RootState> {
     modules?: IStateliModule[];
     initialState?: RootState;
   }): void;
+  asContext(): IStateliContext<RootState>;
 }
