@@ -1,18 +1,19 @@
 import { IStateliModule } from './i-stateli-module';
+import { IStateliModuleBase } from './i-stateli-module-base';
 import { IStateliAction } from './i-stateli-action';
 import { IStateliGetter } from './i-stateli-getter';
 import { IStateliMutation } from './i-stateli-mutation';
 import { HasStringType } from './../has-type';
 import { Map, List, fromJS } from 'immutable';
 
-export class StateliModule<State> implements IStateliModule<State> {
+export class StateliModule<State = any> implements IStateliModule<State> {
   private _actions: List<IStateliAction<State>> = List([]);
   private _mutations: List<IStateliMutation<State>> = List([]);
   private _getters: List<IStateliGetter<State>> = List([]);
   private _state: Map<string, any>;
   private _m = Map({ name: '', namespaced: false });
 
-  constructor(mod: IStateliModule<State>);
+  constructor(mod: IStateliModuleBase<State>);
   constructor(name: string, namespaced: boolean, state: State);
   constructor(...args: any[]) {
     if (args.length === 1 && !!args[0].state) {

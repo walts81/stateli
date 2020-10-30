@@ -1,6 +1,7 @@
 import { List } from 'immutable';
 import { IStateliStore } from './i-stateli-store';
 import { IStateliModule } from './i-stateli-module';
+import { IStateliModuleBase } from './i-stateli-module-base';
 import { IStateliAction } from './i-stateli-action';
 import { IStateliGetter } from './i-stateli-getter';
 import { IStateliMutation } from './i-stateli-mutation';
@@ -51,7 +52,7 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
     actions?: IStateliAction<RootState>[];
     mutations?: IStateliMutation<RootState>[];
     getters?: IStateliGetter<RootState>[];
-    modules?: IStateliModule[];
+    modules?: IStateliModuleBase[];
     initialState?: RootState;
   }) {
     this.reset(config);
@@ -130,21 +131,19 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
     actions?: IStateliAction<RootState>[];
     mutations?: IStateliMutation<RootState>[];
     getters?: IStateliGetter<RootState>[];
-    modules?: IStateliModule[];
+    modules?: IStateliModuleBase[];
     initialState?: RootState;
   }) {
-    const modules = !!config.modules
-      ? [...config.modules]
-      : [
-          {
-            name: stateliRootModuleName,
-            namespaced: false,
-            state: config.initialState || {},
-            actions: !!config.actions ? config.actions : [],
-            getters: !!config.getters ? config.getters : [],
-            mutations: !!config.mutations ? config.mutations : [],
-          },
-        ];
+    const modules: IStateliModule[] = !!config.modules
+      ? config.modules.map(x => new StateliModule(x))
+      : [new StateliModule({
+          name: stateliRootModuleName,
+          namespaced: false,
+          actions: config.actions || [],
+          mutations: config.mutations || [],
+          getters: config.getters || [],
+          state: config.initialState || {}
+        })];
     const immutableModules = modules.map(x => new StateliModule<any>(x));
     this._modules = List(immutableModules);
   }
