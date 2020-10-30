@@ -26,6 +26,10 @@ export class StateliSnapshotContext<RootState, State> implements IStateliContext
     };
   }
 
+  getter<Result = any>(type: string) {
+    return this.store.getter<Result>(type);
+  }
+
   commit<Payload = any>(type: string, payload: Payload) {
     this.store.commit<Payload>(type, payload);
   }

@@ -7,4 +7,5 @@ export interface IStateliContext<RootState = any, State = any> {
   };
   commit: <Payload = any>(type: string, payload: Payload) => void;
   dispatch: <Payload = any, Result = any>(type: string, payload: Payload) => Promise<Result>;
+  getter: <Result = any>(type: string) => Result;
 }

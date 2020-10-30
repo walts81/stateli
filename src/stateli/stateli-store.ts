@@ -61,15 +61,15 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
     return new StateliSnapshotContext(x => x.state, this);
   }
 
-  getter(type: string) {
+  getter<Result = any>(type: string) {
     for (const mod of this._modules) {
       for (const getter of mod.getters) {
         if (this.getType(mod, getter) === type) {
-          return getter.getValue(mod.state, this.getter.bind(this), this.state);
+          return getter.getValue(mod.state, this.getter.bind(this), this.state) as Result;
         }
       }
     }
-    return undefined;
+    return undefined as any;
   }
 
   commit<Payload = any>(type: string, payload: Payload) {

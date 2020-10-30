@@ -28,8 +28,8 @@ export class StateliSnapshotStore<RootState> implements IStateliSnapshotStore<Ro
     return this.store.asContext();
   }
 
-  getter(type: string) {
-    return this.store.getter(type);
+  getter<Result = any>(type: string) {
+    return this.store.getter<Result>(type);
   }
 
   commit<Payload = any>(type: string, payload: Payload) {
