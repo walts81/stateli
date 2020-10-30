@@ -173,9 +173,6 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
   }
 
   private getContext<State>(mod: IStateliModule<State>) {
-    return new StateliSnapshotContext<RootState, any>(
-      x => (this.isDefaultModule() ? x.state : x.state[mod.name]),
-      this
-    );
+    return new StateliSnapshotContext<RootState, any>(() => mod.state, this);
   }
 }
