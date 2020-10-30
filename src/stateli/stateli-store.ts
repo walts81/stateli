@@ -26,13 +26,11 @@ export class StateliStore<RootState> implements IStateliStore<RootState> {
 
   get state() {
     if (this.isDefaultModule()) {
-      return (this._modules.get(0) as any).state;
+      return this._modules.get(0)?.state;
     }
-    const s: any = {};
-    for (const m of this._modules) {
-      s[m.name] = m.state;
-    }
-    return s as RootState;
+    const states = this._modules.map(x => ({ [x.name]: x.state }));
+    const state: RootState = Object.assign({}, ...states);
+    return state;
   }
   set state(s: RootState) {
     if (this.isDefaultModule()) {
