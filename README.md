@@ -63,7 +63,7 @@ const store = new StateliStore({
 });
 
 // dispatch an asynchronous action
-store.dispatch('some_action_Name', 'payload_value');
+store.dispatch('some_action_name', 'payload_value');
 
 // commit a synchronous mutation
 store.commit('some_mutation_name', 'payload_value');
@@ -136,7 +136,7 @@ const store = new StateliStore<RootState>({
 });
 
 // dispatch an asynchronous action
-store.dispatch('some_action_Name', 'payload_value');
+store.dispatch('some_action_name', 'payload_value');
 
 // commit a synchronous mutation
 store.commit('some_mutation_name', 'payload_value');
